@@ -1,0 +1,6 @@
+= WOW HTML Photo Slider Samples
+
+== Home Page of WOW Slider Sample
+
+This sub-project was needed to make a home for some code that might become the foundation
+of a Photo Slider utility.

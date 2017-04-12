@@ -1,0 +1,6 @@
+*.class
+*.iws
+.DS_Store
+.git
+.gradle/
+*.yml

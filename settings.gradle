@@ -1,0 +1,2 @@
+include ':Tools',':Chooser', ':CRUD', ':FileWalker', ':WOW'
+rootProject.name ='Toolkit3'
