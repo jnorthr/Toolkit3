@@ -1,0 +1,40 @@
+= FileWalker
+Jnorthr <james.northrop@orange.fr>
+v0.2, 2017-04-12
+:icons: font
+:toc: left
+:imagesdir: images
+:sectlinks:
+:sectnums:
+
+''''
+
+IMPORTANT: Travis Build Status for Master Branch: image:https://img.shields.io/travis/jnorthr/FileWalker.svg[Build Status (Travis CI), link=https://travis-ci.org/jnorthr/FileWalker]
+
+''''
+
+== Purpose
+
+A Gradle project for Groovy users who need utility code to walk a local directory. Clone includes gradle build tool wrapper and folder structure like maven/gradle so you don't need an installed gradle build tool.
+ 
+.Pre-requisites
+ . Working internet connection
+ . Installed Git client to copy/clone this repo
+ . Ability to use terminal console
+
+.Steps  
+ . Open terminal console
+ . Change directory \( cd \) into target folder location
+ . Run this command to create a folder and copy down all the pieces :
+
+   git clone https://github.com/jnorthr/FileWalker.git
+
+ . *cd FileWalker/*
+ . *./gradlew* runs a series of defined tasks to build and test code samples
+ . After prior step completes, examine *FileWalker/* folder to find the */build/* folder with test results
+
+''''
+
+NOTE: *.travis.yml* needed extra logic to be able to push to github repo and have Travis C/I testing work as expected.
+
+''''
