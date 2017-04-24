@@ -14,6 +14,8 @@ if(files.length >= 2)
 // **************************************************************
 import java.io.File;
 import java.io.IOException;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.slf4j.*
 import groovy.util.logging.Slf4j
@@ -22,11 +24,11 @@ import groovy.util.logging.Slf4j
 //import groovy.util.logging.*  
 
 /**
-* The Picker program implements a support application that
-* allows user to pick a single image file or series of images from a folder directory.
+* The Picker program implements a support application to allow a
+* user to pick a single image file or series of images from a folder directory.
 *
 * Initially starts to choose artifacts from program working directory and saves user
-* choice of path in a local text file 
+* choice of path and filename into local text files 
 *
 * Use annotation to inject log field into the class.
 *
@@ -45,15 +47,18 @@ public class Picker
     /**
      * Handle to component used by the chooser dialog.
      */
-    Chooser ch = null;
-    
-    // ==============================================
-    // Following values set after user choice is made
+    JFileChooser ch = null;
+
+   /**
+     * This is logic to get the name of the home folder used by this user.  
+     */
+    PathFinder pf = new PathFinder();
+
     
     /**
-     * t/f indicator of the user's inter-action with the Picker. True when JFileChooser.APPROVE_OPTION
+     * This is logic to only permit certain files with specific suffixes.  
      */
-    boolean result = false;
+	FileNameExtensionFilter filter = new FileNameExtensionFilter("PNG, JPG, SVG & GIF Images", "png", "jpg", "gif", "svg");
 
 
    // =========================================================================
@@ -74,11 +79,18 @@ public class Picker
     */
     public void setup()
     {
-        ch = new Chooser();
-        ch.allowImagesOnly();
-        ch.selectFileOnly();
-        ch.setTitle("Pick an image");
-    	log.info("setup changed ch.setCurrentDirectory to ${ch.initialPath}");
+        ch = new JFileChooser();
+        re = pf.getResponse(re);
+        println "Picker response set to :\n"+re.toString();
+		ch.setFileFilter(filter);
+		ch.setMultiSelectionEnabled(true);
+        ch.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        ch.setDialogTitle("Pick an image");
+        
+		// this is the only 'set' that makes JFileChooser point to right folder when opening next time
+		def xx = re.path +' '
+    	ch.setSelectedFile(new File(xx))    	
+		ch.setSelectedFile(new File(re.artifact));
     } // endof setup
 
 
@@ -95,49 +107,67 @@ public class Picker
      */
     public Response getChoice()
     {
-		re = ch.getChoice();
-		def x = re.artifact.trim().size();
-		if (x < 1) { re.chosen = false; }
-		if (getDir()) { re.chosen = false; }
+		re.returncode = ch.showDialog(null,"");
+		// now decide what to do with user choice and fill ine Response object depending
+        switch ( re.returncode )
+        {
+            case JFileChooser.APPROVE_OPTION:
+                  File file = ch.getSelectedFile();
+                  re.chosen = true;
+				  re.found = file.exists();
+                  re.isDir = file.isDirectory();
+                  
+				  // what folder did user finally pick ?
+				  re.path = ch.getCurrentDirectory()
+    	  		  say "... re.path=${re.path}" 
+		
+		 		  // what was complete folder+filename user finally picked ?
+				  re.fullname = ch.getSelectedFile().toString();
+    			  say "... re.fullname=${re.fullname}" 
+     	
+				  // pick apart the filename from it's path and put that into the artifact field
+				  def ix = re.fullname.lastIndexOf(File.separator);
+    			  re.artifact = (ix < 0) ? re.fullname : re.fullname.substring(ix+1);    	
+				  if (re.artifact==null) { re.artifact = ""; }
+    			  say "... re.artifact=${re.artifact}" 
+
+		  		  File[] files = ch.getSelectedFiles();
+				  say "... ${files.size()} multiple files chosen"
+		
+                  // to force next time's JFileChooser to pick drilled-down folder, must add final /
+                  pf.setPath(re.path.toString()+'/ '+'\n');
+                  pf.setFile(re.artifact.toString()); 
+
+		  	      say "... APPROVE_OPTION setPath(${re.path.toString()})" 
+		  	      say "... APPROVE_OPTION setFile(${re.artifact.toString()})" 
+				  re.setMany(files);
+				  re.parse(){f-> println "... hi kids=${f}"; };
+				  say "... re=\n"+re.toString();
+
+            	  break;
+
+            case JFileChooser.CANCEL_OPTION:	
+		    	  //re.fullname = re.path.toString()+'/'+re.artifact;
+                  re.chosen = false;
+                  re.found = new File(re.fullname).exists();
+                  re.abort = true;
+                  re.isDir = new File(re.fullname).isDirectory();
+		  	      say "... CANCEL_OPTION has re.fullname as (${re.fullname.toString()})" 
+
+                  break;
+
+            case JFileChooser.ERROR_OPTION:
+		  	      say "... ERROR_OPTION happened" 
+                  re.found = false;
+                  re.chosen = false;
+                  re.abort = true;
+                  re.isDir = false;
+                  break;
+
+		} // end of switch
+		
 		return re;
     } // end of getChoice
-
-
-    /** 
-     * to get user selection of path of a known local folder.
-     */
-    public String getPath()
-    {
-    	return re.path;
-    } // end of getPath
-
-
-    /** 
-     * To get user selection of file but not path of a known local folder.
-     */
-    public String getArtifact()
-    {
-    	return re.artifact;
-    } // end of getFile
-
-
-    /** 
-     * To get user selection of  full name of a known local folder.
-     */
-    public String getName()
-    {
-    	return re.fullname;
-    } // end of getName
-
-
-    /** 
-     * To see if user selection is a known local folder.
-     */
-    public getDir()
-    {	
-    	return re.isDir;
-    } // end of getDir
-
 
    /** 
     * Produce log messages using .info method

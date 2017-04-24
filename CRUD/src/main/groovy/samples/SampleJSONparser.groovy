@@ -1,3 +1,5 @@
+package io.jnorthr.toolkit;
+
 // sample JSON parser
 import groovy.json.*
 

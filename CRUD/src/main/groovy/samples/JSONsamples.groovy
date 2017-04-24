@@ -1,3 +1,5 @@
+package io.jnorthr.toolkit;
+
 // http://groovy-lang.org/json.html notes
 // see: ECMA-404 JSON interchange syntax PDF in Dropbox
 // Dates serilized as string defined in https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date 

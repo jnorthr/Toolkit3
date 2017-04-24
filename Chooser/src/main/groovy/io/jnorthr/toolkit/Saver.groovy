@@ -1,13 +1,14 @@
 //@Grab('log4j:log4j:1.2.17')  use this when running outside gradle or groovyConsole
 package io.jnorthr.toolkit;
 
-// groovy code to choose one image file using our Chooser feature
+// groovy code to choose a folder and filename to save
 // **************************************************************
 import java.io.File;
 import java.io.IOException;
-//import org.apache.log4j.*
-//import groovy.util.logging.*  
+
+import io.jnorthr.toolkit.PathFinder;
 import io.jnorthr.toolkit.Response;
+import javax.swing.JFileChooser;
 
 import org.slf4j.*
 import groovy.util.logging.Slf4j
@@ -20,7 +21,7 @@ import groovy.util.logging.Slf4j
 *
 * @author  jnorthr
 * @version 1.0
-* @since   2016-08-17
+* @since   2017-04-20
 */
 @Slf4j
 public class Saver 
@@ -34,9 +35,14 @@ public class Saver
     /**
      * Handle to component used by the chooser dialog.
      */
-    Chooser ch = null;
+    JFileChooser ch = null;
 
-    
+   /**
+     * This is logic to get the name of the home folder used by this user.  
+     */
+    PathFinder pf = new PathFinder();
+
+
    // =========================================================================
    /** 
     * Class constructor.
@@ -45,26 +51,53 @@ public class Saver
     */
     public Saver()
     {
-    	log.info("this is an .info msg from the Saver default constructor");
-        setup();
+    	log.info("This is an .info msg from the Saver default constructor");
+
+        setup(true);
+    } // endof constructor    
+    
+   /** 
+    * Class constructor.
+    *
+    * non-defaults to let user pick a folder only when false
+    */
+    public Saver(boolean tf)
+    {
+    	log.info("This is an .info msg from the Saver default constructor");
+
+        setup(tf);
     } // endof constructor    
     
     
    /**
-    * Method to prepare class variables by reading a possibly non-existent cache file written in prior run.
+    * Method to prepare class variables
     *
-    * Then run logic to ask user to pick an output folder.
     */
-    public void setup()
+    public void setup(boolean tf)
     {
-        ch = new Chooser();
-        ch.saveAs("fred.html");
-        ch.setOpenOrSave(false);
-        ch.setTitle("Save Filename in this Output Folder");
-        say "trying to pick a project output folder-only";
+        ch = new JFileChooser();
+		pf.getResponse(re);
+
+		// this is the only 'set' that makes JFileChooser point to right folder when opening next time
+		def xx = re.path +' '
+    	ch.setSelectedFile(new File(xx))    	
+    	// if true, we are doing a file save or false to only pick an output folder
+    	if (tf)
+    	{
+        	ch.setFileSelectionMode(JFileChooser.FILES_ONLY);
+	        ch.setDialogTitle("Pick Output Folder & Save Filename");
+	    	ch.setSelectedFile(new File(re.artifact));
+        }
+        else
+    	{
+	        ch.setDialogTitle("Choose An Output Folder");
+        	ch.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        }
+        
+    	ch.setFileHidingEnabled(false);
     } // endof setup
-
-
+    
+    
 
 	// =============================================================================
     /**
@@ -73,53 +106,66 @@ public class Saver
      * This method always returns true if user clicked the APPROVE button indicating 
      * an actual choice was made else returns false if user aborted and failed to make a choice.
      *
-     * @param  menuname the title of the dialog shown to the user
-     * @return boolean true if user clicked the APPROVE button
-     *                false if user did not make a choice
+     * @return Response object filled in if user clicked the APPROVE button
+     *                  or set to default values if user did not make a choice
      */
     public Response getChoice()
     {
-		re = ch.getChoice();
-		def x = re.artifact.trim().size();
-		if (x < 1) { re.chosen = false; }
+		re.returncode = ch.showDialog(null,"Save This");
+
+		// now decide what to do with user choice and fill ine Response object depending
+        switch ( re.returncode )
+        {
+            case JFileChooser.APPROVE_OPTION:
+                  File file = ch.getSelectedFile();
+                  re.chosen = true;
+				  re.found = file.exists();
+                  re.isDir = file.isDirectory();
+                  
+				  // what folder did user finally pick ?
+				  re.path = ch.getCurrentDirectory()
+		
+				  // what was complete folder+filename user finally picked ?
+				  re.fullname = ch.getSelectedFile().toString();
+     	
+				  // pick apart the filename from it's path and put that into the artifact field
+				  def ix = re.fullname.lastIndexOf(File.separator);
+    			  re.artifact = (ix < 0) ? re.fullname : re.fullname.substring(ix+1);
+    	
+		    	  say "... re.artifact=${re.artifact}" 
+				  if (re.artifact==null) { re.artifact = ""; }
+
+                  // to force next time's JFileChooser to pick drilled-down folder, must add final /
+                  pf.setPath(re.path.toString()+'/ '+'\n');
+                  pf.setFile(re.artifact.toString()); 
+
+		  	      say "... APPROVE_OPTION setPath(${re.path.toString()})" 
+		  	      say "... APPROVE_OPTION setFile(${re.artifact.toString()})" 
+
+            	  break;
+
+            case JFileChooser.CANCEL_OPTION:	
+		    	  //re.fullname = re.path.toString()+'/'+re.artifact;
+                  re.chosen = false;
+                  re.found = new File(re.fullname).exists();
+                  re.abort = true;
+                  re.isDir = new File(re.fullname).isDirectory();
+		  	      say "... CANCEL_OPTION has re.fullname as (${re.fullname.toString()})" 
+
+                  break;
+
+            case JFileChooser.ERROR_OPTION:
+		  	      say "... ERROR_OPTION happened" 
+                  re.found = false;
+                  re.chosen = false;
+                  re.abort = true;
+                  re.isDir = false;
+                  break;
+
+		} // end of switch
+		
 		return re;
 	} // end of getChoice
-
-
-    /** 
-     * to get user selection of path of a known local folder minus trailing artifact.
-     */
-    public String getPath()
-    {
-    	return re.path;
-    } // end of getPath
-
-
-    /** 
-     * To get user selection of  full name of a known local folder.
-     */
-    public String getName()
-    {
-    	return re.fullname;
-    } // end of getName
-
-
-    /** 
-     * To get user selection of file name in a known local folder.
-     */
-    public String getArtifact()
-    {
-    	return re.artifact
-    } // end of getArtifact
-
-
-    /** 
-     * To get user selection: true if user APPROVE.
-     */
-    public boolean getChosen()
-    {
-    	return re.chosen;
-    } // end of getChosen
 
 
    /** 
@@ -138,7 +184,7 @@ public class Saver
      * 
      * argument is a list of strings provided as command-line parameters. 
      * 
-     * @param  args a list of possibly zero entries from the command line
+     * @param  args a list of possibly zero entries from the command line - not used in this test
      */
     public static void main(String[] args)
     {
@@ -147,8 +193,13 @@ public class Saver
 		 */    
         def obj = new Saver();
         Response re = obj.getChoice();
-        def msg = (re.chosen) ? "response="+re.toString() : "no choice was made so output is "+re.fullname+" and path="+re.path;
-        println msg;
+        re.reveal();
+        
+        println "\n-------------------------------"
+        obj = new Saver(false); // pick output folder only 
+        Response re2 = obj.getChoice();
+        re2.reveal();
+        
         System.exit(0);
     } // end of main    
     

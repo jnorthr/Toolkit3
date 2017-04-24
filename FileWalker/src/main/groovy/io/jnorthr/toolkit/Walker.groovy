@@ -7,7 +7,7 @@ import javax.swing.JOptionPane;
 import java.util.regex.* 
 
 // configuration support utility
-import io.jnorthr.tools.configuration.Configurator;
+import io.jnorthr.toolkit.configuration.Configurator;
 import io.jnorthr.toolkit.Chooser;
 
 // groovy code to choose one folder to walk thru the files found within it

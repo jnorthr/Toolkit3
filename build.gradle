@@ -1,3 +1,8 @@
+// http://mrhaki.blogspot.fr/2011/04/groovy-goodness-inject-logging-using.html
+// https://www.slf4j.org/manual.html
+// https://mvnrepository.com/artifact/org.slf4j
+// http://docs.groovy-lang.org/2.4.7/html/api/groovy/util/logging/package-summary.html
+
 allprojects{
 	task hello << {task-> println "I'm $task.project.name"}
 }
@@ -10,7 +15,10 @@ subprojects{
     test 
 	{
         maxParallelForks = Runtime.getRuntime().availableProcessors()
-    }
+        testLogging {
+        	showStandardStreams = true
+        }
+    } // end of test
 } // end of subprojects
 
 
@@ -21,8 +29,8 @@ project(':Tools') {
 		//compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.8.1'
 	    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
 	    compile 'org.slf4j:slf4j-api:1.7.25'
-    	compile group: 'ch.qos.logback', name:'logback-classic', version: '1.0.9'                                                                                                                                                                 
-		compile group: 'ch.qos.logback', name:'logback-core', version: '1.0.9' 
+    	compile group: 'ch.qos.logback', name:'logback-classic', version: '1.2.3'                                                                                                                                                                 
+		compile group: 'ch.qos.logback', name:'logback-core', version: '1.2.3' 
 	}
 
 	// runs our main() method; first arg points to a local folder / path name
@@ -33,35 +41,65 @@ project(':Tools') {
 		systemProperty 'simple.message', 'Hi kids '
 	}
 
-	// run config.file existence checker task
+	// run config.file existence task
 	// Feature to confirm a configuration file exists or build a simple one if it does not
-	task runChecker(type: JavaExec) {
-    	main = "io.jnorthr.toolkit.Checker"
+	task runConfigure(type: JavaExec) {
+    	main = "io.jnorthr.toolkit.Configure"
     	classpath = sourceSets.main.runtimeClasspath
 	}
 
-	// run config.file existence checker task with a single arg name for the configuration file being needed
+	// run file existence check task with a single arg name for the configuration file being used
 	// Feature to confirm a configuration file exists or build a simple one if it does not
-	task runChecker1(type: JavaExec) {
-    	main = "io.jnorthr.toolkit.Checker"
+	task runConfigure1(type: JavaExec) {
+    	main = "io.jnorthr.toolkit.Configure"
     	classpath = sourceSets.main.runtimeClasspath
-    	args = [".gradleRunChecker1.config"] // simple filename only without any path pls. !
+    	args = [".runConfigure1.config"] // simple filename only without any path pls. !
 	}
+
+	// runs our main() method;
+	task(runPath, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.PathFinder'
+		classpath = sourceSets.main.runtimeClasspath
+	} // end of task
+
+	// runs the main() method; args are ignored
+	task(runResponse, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.Response'
+		classpath = sourceSets.main.runtimeClasspath
+	}
+
+
+    test {
+       testLogging {
+        // Make sure output from
+        // standard out or error is shown
+        // in Gradle output.
+        showStandardStreams = true
+ 
+        // Or we use events method:
+        // events 'standard_out', 'standard_error'
+ 
+        // Or set property events:
+        // events = ['standard_out', 'standard_error']
+ 
+        // Instead of string values we can
+        // use enum values:
+        // events org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT,
+        //        org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR,
+      } // end of logging
+    } // end of test
+	
 } // end of Tools
 
 
 // Chooser specific stuff
-// http://mrhaki.blogspot.fr/2011/04/groovy-goodness-inject-logging-using.html
-// https://www.slf4j.org/manual.html
-// https://mvnrepository.com/artifact/org.slf4j
-// http://docs.groovy-lang.org/2.4.7/html/api/groovy/util/logging/package-summary.html
 // /Users/jimnorthrop/Dropbox/Projects/Toolkit/CRUD/archive/TryChooser.groovy
 project(':Chooser') {
 	dependencies {
 		compile project(':Tools')
 	    compile 'org.codehaus.groovy:groovy-all:2.4.10'
 	    
-    	//@Grab(group='ch.qos.logback', module='logback-classic', version='1.0.9')
+    	//@Grab(group='ch.qos.logback', module='logback-classic', version='1.2.3')
 		//compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.8.1'
     	    
 	    compile 'org.slf4j:slf4j-api:1.7.25'
@@ -71,12 +109,12 @@ project(':Chooser') {
 
 	    runtime 'org.slf4j:slf4j-simple:1.7.25'
 	    //runtime 'org.slf4j:slf4j-log4j12:1.7.25'
-	    runtime group:'ch.qos.logback', name:'logback-classic', version:'1.0.9'
+	    runtime group:'ch.qos.logback', name:'logback-classic', version:'1.2.3'
 	                                                                                                                                                                           
     	// sfl4j is just a facade for loggers. To actually get logging to work, you need to                                                                                                                                                       
     	// tie it in with some actual implementation, e.g., logback
-    	compile group: 'ch.qos.logback', name:'logback-classic', version: '1.0.9'                                                                                                                                                                 
-		compile group: 'ch.qos.logback', name:'logback-core', version: '1.0.9' 
+    	compile group: 'ch.qos.logback', name:'logback-classic', version: '1.2.3'                                                                                                                                                                 
+		compile group: 'ch.qos.logback', name:'logback-core', version: '1.2.3' 
 	}
 
 	// runs the Chooser main() method; args are ignored but maybe later ?
@@ -86,6 +124,38 @@ project(':Chooser') {
 		args 'jimbo', 'hi kids'
 		systemProperty 'simple.message', 'Hi kids '
 	}
+
+	// runs the ChooserTest1 main() method; args are ignored but maybe later ?
+	task(runChooserTest1, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.ChooserTest1'
+		classpath = sourceSets.test.runtimeClasspath + sourceSets.main.runtimeClasspath
+	} // end of method
+
+	// runs the ChooserTest2 main() method; args are ignored but maybe later ?
+	task(runChooserTest2, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.ChooserTest2'
+		classpath = sourceSets.test.runtimeClasspath + sourceSets.main.runtimeClasspath
+	} // end of method
+
+	// runs the ChooserTest3 main() method; args are ignored but maybe later ?
+	task(runChooserTest3, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.ChooserTest3'
+		classpath = sourceSets.test.runtimeClasspath + sourceSets.main.runtimeClasspath
+	} // end of method
+
+
+	// runs the ChooserTest4 main() method; args are ignored but maybe later ?
+	task(runChooserTest4, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.ChooserTest4'
+		classpath = sourceSets.test.runtimeClasspath + sourceSets.main.runtimeClasspath
+	} // end of method
+
+	// runs the ChooserTest5 main() method; args are ignored but maybe later ?
+	task(runChooserTest5, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.ChooserTest5'
+		classpath = sourceSets.test.runtimeClasspath + sourceSets.main.runtimeClasspath
+	} // end of method
+
 
 	// runs the Picker main() method; args are ignored but maybe later ?
 	task(runPicker, dependsOn: 'classes', type: JavaExec) {
@@ -102,15 +172,8 @@ project(':Chooser') {
 		args 'jimbo', 'hi kids'
 		systemProperty 'simple.message', 'Hi kids '
 	}
-
-	// runs the main() method; args are ignored but maybe later ?
-	task(runResponse, dependsOn: 'classes', type: JavaExec) {
-		main = 'io.jnorthr.toolkit.Response'
-		classpath = sourceSets.main.runtimeClasspath
-		args 'jimbo', 'hi kids'
-		systemProperty 'simple.message', 'Hi kids '
-	}
 } // end of Chooser
+
 
 
 // CRUD specific stuff
@@ -118,12 +181,62 @@ project(':CRUD') {
 	dependencies {
 		compile project(':Tools')
 	    compile 'org.codehaus.groovy:groovy-all:2.4.10'
-	    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+	    testCompile 'org.spockframework:spock-core:1.1-groovy-2.4-rc-2'
 	    compile 'org.slf4j:slf4j-api:1.7.25'
-    	compile group: 'ch.qos.logback', name:'logback-classic', version: '1.0.9'                                                                                                                                                                 
-		compile group: 'ch.qos.logback', name:'logback-core', version: '1.0.9' 
+    	compile group: 'ch.qos.logback', name:'logback-classic', version: '1.2.3'                                                                                                                                                                 
+		compile group: 'ch.qos.logback', name:'logback-core', version: '1.2.3' 
 	}
-}
+
+	// runs the ConfigTool main() method; args are ignored but maybe later ?
+	task(runConfigTool, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.configuration.ConfigTool'
+		classpath = sourceSets.main.runtimeClasspath
+	}
+
+	// runs the ConfigTool main() method; args are ignored but maybe later ?
+	task(runConfigurator, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.configuration.Configurator'
+		classpath = sourceSets.main.runtimeClasspath
+	}
+
+	// runs the JSONTool main() method; args are ignored but maybe later ?
+	task(runJSONTool, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.json.JSONTool'
+		classpath = sourceSets.main.runtimeClasspath
+	}
+
+	// runs the PropertyTool main() method; args are ignored but maybe later ?
+	task(runPropertyTool, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.property.PropertyTool'
+		classpath = sourceSets.main.runtimeClasspath
+	}
+
+	// runs the ConfigTester script; args are ignored but maybe later ?
+	task(runConfigTester, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.ConfigTester'
+		classpath = sourceSets.main.runtimeClasspath
+	}
+
+	// runs the JSONsamples script; args are ignored but maybe later ?
+	task(runJSONsamples, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.JSONsamples'
+		classpath = sourceSets.main.runtimeClasspath
+	}
+
+	// runs the sampConfigSlurper script; args are ignored but maybe later ?
+	task(runsampConfigSlurper, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.sampConfigSlurper'
+		classpath = sourceSets.main.runtimeClasspath
+	}
+
+	// runs the SampleJSONparser script; args are ignored but maybe later ?
+	task(runSampleJSONparser, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.SampleJSONparser'
+		classpath = sourceSets.main.runtimeClasspath
+	}
+	
+} // end of CRUD
+
 
 
 // FileWalker specific stuff
@@ -134,8 +247,8 @@ project(':FileWalker') {
 		compile project(':CRUD')
 	    compile 'org.codehaus.groovy:groovy-all:2.4.10'
 	    compile 'org.slf4j:slf4j-api:1.7.25'
-    	compile group: 'ch.qos.logback', name:'logback-classic', version: '1.0.9'                                                                                                                                                                 
-		compile group: 'ch.qos.logback', name:'logback-core', version: '1.0.9' 
+    	compile group: 'ch.qos.logback', name:'logback-classic', version: '1.2.3'                                                                                                                                                                 
+		compile group: 'ch.qos.logback', name:'logback-core', version: '1.2.3' 
 	}
 
 	// runs the Walker main() method; args are ignored but maybe later ?
@@ -146,18 +259,35 @@ project(':FileWalker') {
 		systemProperty 'simple.message', 'Hi kids '
 	}
 
-} // end of project
+	// runs the ParseAdocs script; args are ignored but maybe later ?
+	task(runParseAdocs, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.toolkit.ParseAdocs'
+		classpath = sourceSets.main.runtimeClasspath
+		args 'jimbo', 'hi kids'
+		systemProperty 'simple.message', 'Hi kids '
+	}
+
+} // end of FileWalker
+
 
 // WOW specific stuff
 project(':WOW') {
 	dependencies {
+		compile project(':Chooser')
 	    compile 'org.codehaus.groovy:groovy-all:2.4.10'
 	    compile group: 'log4j', name:'log4j', version: '1.2.17'
-	    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+	    testCompile 'org.spockframework:spock-core:1.1-groovy-2.4-rc-2'
 
 	    compile 'org.slf4j:slf4j-api:1.7.25'
-    	compile group: 'ch.qos.logback', name:'logback-classic', version: '1.0.9'                                                                                                                                                                 
-		compile group: 'ch.qos.logback', name:'logback-core', version: '1.0.9' 
+    	compile group: 'ch.qos.logback', name:'logback-classic', version: '1.2.3'                                                                                                                                                                 
+		compile group: 'ch.qos.logback', name:'logback-core', version: '1.2.3' 
 	}
-}
+
+	// runs the WOW main() method; args are ignored but maybe later ?
+	task(runWOW, dependsOn: 'classes', type: JavaExec) {
+		main = 'io.jnorthr.wow.WOW'
+		classpath = sourceSets.main.runtimeClasspath
+	}
+
+}  // end of WOW project
 

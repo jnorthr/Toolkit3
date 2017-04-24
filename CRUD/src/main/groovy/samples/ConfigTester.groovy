@@ -1,4 +1,5 @@
-import io.jnorthr.tools.configuration.*;
+package io.jnorthr.toolkit;
+import io.jnorthr.toolkit.configuration.*;
 import org.slf4j.*
 import groovy.util.logging.Slf4j
 @Slf4j

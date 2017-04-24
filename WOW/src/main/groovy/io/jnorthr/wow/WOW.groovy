@@ -1,8 +1,15 @@
+/*
+@Grapes([
+    @Grab(group='org.slf4j', module='slf4j-api', version='1.7.21'),
+    @Grab(group='ch.qos.logback', module='logback-classic', version='1.2.3')
+])
+*/
 package io.jnorthr.wow;
 
 //import org.apache.log4j.*
 //import groovy.util.logging.*  
-//import io.jnorthr.toolkit.Saver;
+import io.jnorthr.toolkit.Saver;
+import io.jnorthr.toolkit.PathFinder;
 
 import org.slf4j.*
 import groovy.util.logging.Slf4j
@@ -24,7 +31,7 @@ public class WOW
 {
 
     /**
-	 * bean to hold row data - one <LI> per row
+     * bean to hold row data - one <LI> per row
      */
     class Dta
     {
@@ -51,7 +58,7 @@ public class WOW
          } // end of toString()    
          
     }// end of class
-    
+    // ----------------------------------------------------------
 
 
     /**
@@ -68,7 +75,7 @@ public class WOW
     /**
      * Flag set true to cause audit printlines
      */
-    boolean audit = false;
+    boolean audit = true;
 
 
     /**
@@ -103,6 +110,16 @@ public class WOW
     StringBuffer bullets = ''<<'' ;
 
 
+    /**
+     * Tool to get system values.  
+     */
+    PathFinder pf = new PathFinder();
+
+    /**
+     * These default names point to a groovy script-structured configuration cache where user values are stored between sessions.  
+     */
+    String homePath;
+
    // =========================================================================
    /** 
     * Default Class constructor.
@@ -110,8 +127,29 @@ public class WOW
     */
     public WOW()
     {
+        homePath = pf.getHomePath();
+        cp = homePath;
         buildTemplates();
-        setup('kids.html');
+        def ti = new Date().getTime();
+        setup("src/main/war/wow${ti}.html");
+    } // end of constructor
+
+
+   // =========================================================================
+   /** 
+    * Non-Default Class constructor.
+    * defaults to let user provided output filename without a path choice as that goes to src/main/war folder
+    */
+    public WOW(String addr)
+    {
+    	def ix = addr.indexOf(File.separator);
+    	if (ix > -1) { throw new RuntimeException("WOW constructor can only take simple output filenames not paths.") }
+    	
+        homePath = pf.getHomePath();
+        cp = homePath;
+
+        buildTemplates();
+        setup("src/main/war/${addr}");
     } // end of constructor
 
 
@@ -135,11 +173,11 @@ public class WOW
    /** 
     * This method turns off the wrapper flag so that a complete full HTML file is not generated in one go 
     */
-	public stopWrapper()
-	{
-        addWrapper = false;	
-	}    
-	
+    public stopWrapper()
+    {
+        addWrapper = false;    
+    }    
+    
     
    /** 
     * This method establishes <LI> entries in one go 
@@ -159,27 +197,26 @@ public class WOW
 
 
    /** 
-    * This method asks user for path and filename of a complete full HTML file to be written as output 
+    * This method asks user for user to pick partial output path and filename of a complete full HTML file to be written as output 
     */
-    def setup(String name)
+    def setup()
     {
-/*
- need more work here to clean up and allow Saver module to provide guidance    
+        // need more work here to clean up and allow Saver module to provide guidance    
         //def ch = new Chooser();
         def ch = new Saver();
         if (ch.chosen)
         {
-            ch.say "the full name of the selected output path is "+ch.getName();    
-        	ch.say "path="+ch.getPath()+"\nartifact name="+ch.getArtifact();    
-            ch.say "the full name of the selected file is "+ch.getName();    
+            say "the full name of the selected output path is "+ch.getName();    
+            say "path="+ch.getPath()+"\nartifact name="+ch.getArtifact();    
+            say "the full name of the selected file is "+ch.getName();    
             cp = ch.getPath()
             name = ch.getArtifact();
-            ch.say "user said path=[${cp}] and name=[${name}]"
+            say "user said path=[${cp}] and name=[${name}]"
         }
         else
         {
-        	ch.say "no choice was made so output path is "+ch.getName()+" and path="+ch.getPath();
-        	System.exit(0);
+            say "no choice was made so output path is "+ch.getName()+" and path="+ch.getPath();
+            System.exit(0);
         }
         
         ch.saveAs(name);
@@ -187,25 +224,34 @@ public class WOW
         ch.setTitle("Pick a Folder and Filename to save");
         if (ch.getChoice())
         {
-        	ch.say "path="+ch.path+"\nartifact name="+ch.artifact.toString();    
-            ch.say "the full name of the selected file is "+ch.fullname;    
+            say "path="+ch.path+"\nartifact name="+ch.artifact.toString();    
+            say "the full name of the selected file is "+ch.fullname;    
             cp = ch.path
             name = ch.artifact;
-            ch.say "user said path=[${cp}] and name=[${name}]"
+            say "user said path=[${cp}] and name=[${name}]"
         }
         else
         {
-        	System.exit(0);
+            System.exit(0);
         }
-*/
 
         say "File.separator="+File.separator;
         def fn = cp+File.separator+name
         say "looking for fn="+fn;
-        
+		this.setup(fn);        
+    } // end of setup()
+
+
+   /** 
+    * This method asks user for partial path and filename of a complete full HTML file to be written as output 
+    */
+    def setup(String name)
+    {
         // find what path we are executing in and remove pre-existing file of same name
-        fo = new File(fn);        
+        fo = new File(name);        
+
         if (fo.exists()) { fo.delete() }
+        fo.write('');
     } // end of setup()
 
 
@@ -225,7 +271,15 @@ public class WOW
     */
     def write(String txt)
     {
-        fo.append(txt);
+        try{
+            fo.append(txt);
+        }
+        catch(any)
+        {
+            println "... failed to append to fo file";
+            println "    due to :"+any.message;
+        } // end of catch
+        
     } // end of write()    
 
 
@@ -287,7 +341,7 @@ public class WOW
 """
 
 
-	// =============================================================================    
+    // =============================================================================    
     /**
      * The primary method to execute this class. 
      * Can be used to test and examine logic and performance issues. 
@@ -298,19 +352,24 @@ public class WOW
      */
     public static void main(String[] args)
     {
+/*    
         WOW w = new WOW();
-        //w.setup('kids.html');
-        //w.save();
+        w.setup('src/main/war/kids.html');
+        w.save();
         
-        //w.write(w.head.toString()+"\n");
-        //w.write(w.body.toString()+"\n");
+        w.setup('src/main/war/partial.html');
+        w.write(w.head.toString()+"\n");
+        w.write(w.body.toString()+"\n");
         
-        //w = new WOW('fred.adoc');
-
-        //w = new WOW('max.html', false);
-
-        w.say "--- the end ---"
-        System.exit(0);
+        w = new WOW('max.html');
+        w.save();
+*/
+        // allow user to choose output path and filename
+        WOW x = new WOW();
+        x.save();
+        
+        println "--- the end ---"
+        //System.exit(0);
     } // end of main
     
 } // end of class

@@ -1,6 +1,8 @@
+package io.jnorthr.toolkit;
+
 import java.io.*
 files = []
-fn = '/Users/jimnorthrop/Dropbox/Projects/Website';
+fn = '/Users/jim/Dropbox/Projects/Toolkit3';
 /*
 new File(fn).eachFileMatch(~/^.*\.adoc$/) { files << it.name };
 
@@ -48,7 +50,7 @@ findTxtFileClos = {
 // Apply closure
 findTxtFileClos(new File(fn))
 println "\n===================================\nFound $count files\n"
-map.each{ k, v -> println "${k}:${v}" }
+map.sort().each{ k, v -> println "${k}:${v}" }
 
 
 println "---  the end ---"

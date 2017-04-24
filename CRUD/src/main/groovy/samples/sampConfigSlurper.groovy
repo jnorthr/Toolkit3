@@ -1,3 +1,5 @@
+package io.jnorthr.toolkit;
+
 // need imports for JSON parsing bottom of this script
 import groovy.json.*
 import static groovy.json.JsonParserType.*
