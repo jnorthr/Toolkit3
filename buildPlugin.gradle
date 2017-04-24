@@ -1,0 +1,112 @@
+// https://docs.gradle.org/current/userguide/custom_plugins.html
+
+/*
+In this example, several settings can be grouped together within the greeting closure. 
+The name of the closure block in the build script (greeting) needs to match the extension object name. 
+Then, when the closure is executed, the fields on the extension object will be mapped to the variables 
+within the closure based on the standard Groovy closure delegate feature. 
+*/
+
+apply plugin: GreetingPlugin
+
+greeting {
+    message = 'Hi'
+    greeter = 'Gradle'
+}
+
+class GreetingPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.extensions.create("greeting", GreetingPluginExtension)
+        project.task('hello') {
+            doLast {
+                println "${project.greeting.message} from ${project.greeting.greeter}"
+            }
+        }
+    }
+}
+
+class GreetingPluginExtension {
+    String message
+    String greeter
+}
+
+
+/*
+When developing custom tasks and plugins, it's a good idea to be very flexible when accepting input configuration for file locations. 
+To do this, you can leverage the Project.file(java.lang.Object) method to resolve values to files as late as possible. 
+*/
+class GreetingToFileTask extends DefaultTask {
+
+    def destination
+
+    File getDestination() {
+        project.file(destination)
+    }
+
+    @TaskAction
+    def greet() {
+        def file = getDestination()
+        file.parentFile.mkdirs()
+        file.write "Hello!"
+    }
+}
+
+task greet(type: GreetingToFileTask) {
+    destination = { project.greetingFile }
+}
+
+task sayGreeting(dependsOn: greet) {
+    doLast {
+        println file(greetingFile).text
+    }
+}
+
+ext.greetingFile = "$buildDir/hello.txt"
+
+
+/* -------------------
+sample two :
+
+apply plugin: GreetingPlugin
+
+//greeting.message = 'Hi from Gradle'
+
+greeting {
+    message = 'Hi'
+    greeter = 'Gradle'
+}
+
+class GreetingPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        // Add the 'greeting' extension object
+        project.extensions.create("greeting", GreetingPluginExtension)
+        // Add a task that uses the configuration
+        project.task('hello') {
+            doLast {
+				println "${project.greeting.message} from ${project.greeting.greeter}"
+                //println project.greeting.message
+            }
+        }
+    }
+}
+
+class GreetingPluginExtension {
+    def String message = 'Hello from GreetingPlugin'
+}
+*/
+
+
+/* ----------------------
+sample one :
+apply plugin: GreetingPlugin
+
+class GreetingPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.task('hello') {
+            doLast {
+                println "Hello from the GreetingPlugin"
+            }
+        }
+    }
+}
+*/

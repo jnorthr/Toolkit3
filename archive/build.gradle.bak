@@ -1,0 +1,74 @@
+
+// this plugin offers build scan reporting when gradlew -Dscan
+// to produce https://gradle.com/s/w4kwpvbnsu5ek link in an email they send to you if you do
+// one-at-a-time builds; probably good for big projects ?
+plugins {
+  id "com.gradle.build-scan" version "1.1.1"
+}
+buildScan { licenseAgreementUrl = 'https://gradle.com/terms-of-service'; licenseAgree = 'yes' }
+
+subprojects 
+{
+    	apply plugin: 'groovy'
+    	group = 'io.jnorthr.toolkit'
+    	version = "0.1"
+    	repositories 
+		{
+        	mavenCentral()
+    	}
+
+    	dependencies 
+		{
+        	testCompile "junit:junit:4.12"
+    	}
+
+    	test 
+		{
+        	maxParallelForks = Runtime.getRuntime().availableProcessors()
+    	}
+
+}
+
+project(':Chooser') {
+    dependencies 
+	{
+        compile project(':Tools')
+    }
+}
+
+
+project(':CRUD') {
+    dependencies 
+	{
+        compile project(':Tools')
+        compile project(':Chooser')
+    }
+}
+
+project(':WOW') {
+    dependencies 
+	{
+        compile project(':Tools')
+        compile project(':Chooser')
+        compile project(':CRUD')
+    }
+}
+
+
+project(':FileWalker') {
+    dependencies 
+	{
+        compile project(':Tools')
+        compile project(':Chooser')
+        compile project(':CRUD')
+    }
+}
+
+defaultTasks 'clean', 'build'
+
+//defaultTasks 'clean', 'build', ':core:jar', ':core:dist', ':template-project:war', ':website:apiIcons', ':website:reportIcons', ':website:war', ':website:copyArtifacts'
+//':template-project:template', ':template-project:copy',  ':website:cf-login',':website:cf-push', ':template-project:cf-push'
+
+task wrapper(type: Wrapper) {
+    gradleVersion "3.4"
+}
