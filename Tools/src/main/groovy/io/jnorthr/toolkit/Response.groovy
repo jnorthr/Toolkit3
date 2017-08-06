@@ -42,7 +42,7 @@ public class Response
 	 * rememberpath=/Users/jimnorthrop/.path.txt 
 	 * isDir=false
      */
-    def path = null;
+    String path = "";
 
 
     /**
@@ -50,13 +50,13 @@ public class Response
      * but not it's path. Holds a value when Directory_Only choice is in effect of lowest level folder name
      * and parent path is in 'path' variable above.
      */
-    def artifact = "";
+    String artifact = "";
     
     /**
      * Temp work area holding the full and complete absolute path plus file name of the user's artifact 
      * selected with the chooser. 
      */
-    def fullname = "";
+    String fullname = "";
 
 
     /**
@@ -104,6 +104,7 @@ public class Response
 		multiFileSelect = selected;
 		multiFileCount = multiFileSelect.size()
 		multipleFilesWereSelected = ( multiFileCount > 0 ) ? true : false;
+		return multipleFilesWereSelected;
 	} // end of method
 
 
@@ -111,10 +112,28 @@ public class Response
      * This method walks thru the files were chosen in the most recent user interaction applying closure
      * logic to each entry;
      */
-	public boolean parse(Closure logic)
+	public boolean parseEach(Closure logic)
 	{
 		multiFileSelect.each{e-> logic(e)}
-		return false;
+		return true;
+	} // end of method
+
+    /**
+     * This method is applying closure logic to Response object;
+     */
+	public boolean parse(Closure logic)
+	{
+		logic()
+		return true;
+	} // end of method
+
+    /**
+     * This method is applying closure logic to Response object;
+     */
+	public boolean parse(def obj,Closure logic)
+	{
+		logic(obj)
+		return true;
 	} // end of method
 
 
@@ -147,7 +166,7 @@ public class Response
     /**
       * reveal() method
       */
-    String reveal() 
+    public void reveal() 
     {
 		if (abort)
     	{

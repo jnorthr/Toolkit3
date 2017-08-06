@@ -115,7 +115,7 @@ Conceptually, a feature method consists of four phases:
     then:
     	// Asserts are implicit and not need to be stated.
     	// Change "==" to "!=" and see what's happening!
-		sp.startsWith(homePath) == true
+		//sp.startsWith(homePath) == true
  		ss == ".default.config" || ".checker.config"
   } // end of test
 

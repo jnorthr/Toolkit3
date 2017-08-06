@@ -146,7 +146,7 @@ public class Configure{
             payload = fi.getText("UTF-8");
             try{
                 dataObject = config.parse(payload);
-                say prettyPrint()
+                //say prettyPrint()
             }
             catch (Exception e)
             {
@@ -154,9 +154,9 @@ public class Configure{
                 throw new RuntimeException(e.message) 
             } // end of catch
             
-            say "------------------\npayload set to :"
-            say payload
-            say "------------------"
+            //say "------------------\npayload set to :"
+            //say payload
+            //say "------------------"
         }
         else
         {

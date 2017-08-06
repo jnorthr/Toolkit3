@@ -1,2 +1,2 @@
-include ':Tools',':Chooser', ':CRUD', ':FileWalker', ':WOW'
+include ':Tools',':Chooser', ':CRUD', ':FileWalker', ':WOW', ':EatHtml'
 rootProject.name ='Toolkit3'

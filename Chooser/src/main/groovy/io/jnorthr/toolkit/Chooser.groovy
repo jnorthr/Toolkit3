@@ -172,11 +172,20 @@ public class Chooser
         fc.setDialogTitle(menuTitle);
         
 		// this is the only 'set' that makes JFileChooser point to right folder when opening next time
-		def xx = re.path +' '
-    	fc.setSelectedFile(new File(xx))    	
+		setPath(re.path)
 		fc.setSelectedFile(new File(re.artifact));
-    } // endof setup
+    } // end of setup
 
+
+   /**
+    * Method to force JFileChooser to start from a known folder.
+    */
+    public void setPath(String pa)
+    {
+		def xx = pa +' '
+		println "... Chooser.setPath(String [${pa}])"
+    	fc.setSelectedFile(new File(xx))    	
+    } // end of setPath
 
 	// =============================================================================
     /**
@@ -200,6 +209,7 @@ public class Chooser
                   re.chosen = true;
 				  re.found = file.exists();
                   re.isDir = file.isDirectory();
+                  say "... file.isDirectory() ? ="+re.isDir;
                   
 				  // what folder did user finally pick ?
 				  re.path = fc.getCurrentDirectory()
@@ -208,13 +218,23 @@ public class Chooser
 		 		  // what was complete folder+filename user finally picked ?
 				  re.fullname = fc.getSelectedFile().toString();
     			  say "... re.fullname=${re.fullname}" 
-     	
-				  // pick apart the filename from it's path and put that into the artifact field
-				  def ix = re.fullname.lastIndexOf(File.separator);
-    			  re.artifact = (ix < 0) ? re.fullname : re.fullname.substring(ix+1);    	
-				  if (re.artifact==null) { re.artifact = ""; }
-    			  say "... re.artifact=${re.artifact}" 
-
+ 
+     			
+     			  if (re.isDir)
+     			  {
+     			  	re.path = re.fullname;
+     			  	re.artifact = "";
+     			  }
+     			  else
+     			  {
+				  	// pick apart the filename from it's path and put that into the artifact field
+				  	def ix = re.fullname.lastIndexOf(File.separator);
+    			  	re.artifact = (ix < 0) ? re.fullname : re.fullname.substring(ix+1);    	
+				  	if (re.artifact==null) { re.artifact = ""; }
+    			  	say "... re.artifact=${re.artifact}" 
+				  } // end of else
+				  
+				  // Multiple file selections captured here
 		  		  File[] files = fc.getSelectedFiles();
 				  say "... ${files.size()} multiple files chosen"
 		

@@ -1,0 +1,32 @@
+// https://github.com/ajoberstar/gradle-git/wiki/Grgit%20Usage
+/*
+plugins {
+  id 'org.ajoberstar.grgit' version '1.7.1'
+}
+
+buildscript {
+  repositories {
+    // jcenter()
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'org.ajoberstar:gradle-git:1.7.1'
+  }
+}
+*/
+
+task pushToOrigin {
+  description = 'Pushes current branch\'s committed changes to origin repo.'
+  doLast {
+    grgit.push()
+  }
+}
+
+// Authentication
+// http://ajoberstar.org/grgit/docs/groovydoc/org/ajoberstar/grgit/auth/AuthConfig.html
+
+/* Hardcoded credentials can alternately be provided with environment variables. These take a lower precedence than the system properties, but all other considerations are the same.
+
+    GRGIT_USER=<username> un
+    GRGIT_PASS=<password> pw
+*/

@@ -282,6 +282,16 @@ public class PathFinder
     	println msg;
     } // end of say
     
+   /** 
+    * Produce messages using println method
+    */
+ 	@Override
+    public String toString()
+    {
+    	return """homePath=${homePath}
+currentWorkingDirectory=${currentWorkingDirectory}"""
+    } // end of toString()
+    
     
     // =============================================================================    
     /**

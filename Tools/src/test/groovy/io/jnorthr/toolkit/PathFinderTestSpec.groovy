@@ -13,10 +13,10 @@ import io.jnorthr.toolkit.PathFinder;
 class PathFinderTestSpec extends Specification 
 {
   // fields
-  PathFinder pf;
+  //PathFinder pf;
   
   //@Shared
-  //String homePath  	    
+  //String ourPath  	    
 
   // Fixture Methods
   
@@ -32,8 +32,8 @@ class PathFinderTestSpec extends Specification
   // Note: The setupSpec() and cleanupSpec() methods may not reference instance fields.
   def setupSpec() 
   {
-	 //PathFinder pf = new PathFinder();
-     
+	 PathFinder pf = new PathFinder();
+     String ourPath = pf.homePath
   } // run before the first feature method
   
   
@@ -62,12 +62,13 @@ Conceptually, a feature method consists of four phases:
         String homePath  = System.getProperty("user.home") + File.separator;
 
     when:
-		pf = new PathFinder();  
+   	    PathFinder pf = new PathFinder();
 		def myPath = pf.getHomePath();
+	    String ourPath = pf.homePath
 		
     then:
 		// Asserts are implicit and not need to be stated.
-		homePath == myPath
+		ourPath == myPath
   } // end of test
 
 
@@ -79,13 +80,13 @@ Conceptually, a feature method consists of four phases:
 	    String currentWorkingDirectory  = System.getProperty("user.dir") + File.separator;
 
     when:
-		pf = new PathFinder();
+   	    PathFinder pf = new PathFinder();
 		def pwd = pf.getPWD()
  
     then:
     	// Asserts are implicit and do not need to be stated.
     	// Change "==" to "!=" and see what's happening!
-		currentWorkingDirectory == pwd
+		pf.currentWorkingDirectory == pwd
   }
 
   // 3rd Test
@@ -94,7 +95,7 @@ Conceptually, a feature method consists of four phases:
 		println "3rd Test: Pass PathFinder an illegal constructor"
  
     when:
-		pf = new PathFinder(".PathFinderTestSpec3.config");
+   	    PathFinder pf = new PathFinder(".PathFinderTestSpec3.config");
  
     then:
     	// Asserts are implicit and not need to be stated.
@@ -108,7 +109,7 @@ Conceptually, a feature method consists of four phases:
 		println "4th Test: Pass PathFinder an illegal constructor - alt syntax"
  
     when:
-		pf = new PathFinder(".PathFinderTestSpec4.config");
+		PathFinder pf = new PathFinder(".PathFinderTestSpec4.config");
  
     then:
     	// Asserts are implicit and not need to be stated.
@@ -118,5 +119,131 @@ Conceptually, a feature method consists of four phases:
         ex.message == 'Could not find matching constructor for: io.jnorthr.toolkit.PathFinder(java.lang.String)'
   } // end of test
   
+
+  /* Fifth Test
+  def "5th Test: load Response from PathFinder method"() {
+    given:
+		println "\n5th Test: load Response from PathFinder method"
+        PathFinder pf = new PathFinder();
+ 		def home = pf.getHomePath()
+ 		println "... 5th Test: homePath=[${home}]"
+ 		
+    when:
+		Response re = new Response();  
+		re = pf.getResponse(re);
+		
+    then:
+		// Asserts are implicit and not need to be stated.
+		re.toString() == """chosen=false
+returncode=-1
+path=${home}
+artifact=myfile.txt 
+fullname=${home}myfile.txt
+found=false
+isDir=false
+multipleFilesWereSelected=false
+multiFileCount=0
+cancelled=false"""
+  } // end of test
+*/
+
+
+
+//==========================================
+
+/*------------
+  // Sixth Test
+  def "6th Test: PathFinder "() {
+    given:
+		println "\n6th Test: PathFinder"
+
+    when:
+		PathFinder pf = new PathFinder();  
+		def txt = pf.toString() 
+    then:
+		// Asserts are implicit and not need to be stated.
+		txt == """homePath=/Users/jimnorthrop/
+currentWorkingDirectory=/Users/jimnorthrop/Dropbox/Projects/Toolkit3/Tools/
+""".toString()
+  } // end of test
+
+
+  // Test Seven
+  def "7th Test: PathFinder "() {
+    given:
+		println "\n7th Test: PathFinder"
+
+    when:
+		PathFinder pf = new PathFinder();  
+		//def myPath = pf.getHomePath();
+		
+    then:
+		// Asserts are implicit and not need to be stated.
+		pf != null
+  } // end of test
+
+
+  // Test Eight
+  def "8th Test: PathFinder "() {
+    given:
+		println "\n8th Test: PathFinder"
+
+    when:
+		PathFinder pf = new PathFinder();  
+		def myPath = pf.getHomePath();
+		
+    then:
+		// Asserts are implicit and not need to be stated.
+		ourPath == myPath
+  } // end of test
+
+
+  // Test Nine
+  def "9th Test: PathFinder "() {
+    given:
+		println "\n9th Test: PathFinder"
+
+    when:
+		PathFinder pf = new PathFinder();  
+		def myPath = pf.getHomePath();
+		
+    then:
+		// Asserts are implicit and not need to be stated.
+		ourPath == myPath
+  } // end of test
+
+
+  // Test Ten
+  def "10th Test: PathFinder "() {
+    given:
+		println "\n10th Test: PathFinder"
+
+    when:
+		PathFinder pf = new PathFinder();  
+		def myPath = pf.getHomePath();
+		
+    then:
+		// Asserts are implicit and not need to be stated.
+		ourPath == myPath
+  } // end of test
+
+
+  // Test Eleven
+  def "11th Test: PathFinder "() {
+    given:
+		println "\n11th Test: PathFinder"
+
+    when:
+		PathFinder pf = new PathFinder();  
+		def myPath = pf.getHomePath();
+		
+    then:
+		// Asserts are implicit and not need to be stated.
+		ourPath == myPath
+  } // end of test
+
+
+----------------------------
+*/
 
 } // end of spec

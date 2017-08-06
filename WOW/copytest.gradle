@@ -1,0 +1,45 @@
+// sample test taken from Safari Gradle Tutorial https://www.safaribooksonline.com/library/view/gradle-beyond-the/9781449373801/ch01.html
+// files can come from a variety of folders but always go into a single 'into' folder
+// 
+task complexCopy(type: Copy) {
+  from('src/main/resources') {
+    include '**/*.html'
+    exclude '**/*.adoc'     // ignore any files with this suffix or any sub-folders
+    exclude '*.properties'	// ignore any files with this suffix
+    into 'html'	// folder within the 'into' folder below, as build/resources/html
+  }
+  from('src/docs')	// take everthing
+  
+  // now take images from several folders
+  from('src/main/war/images') {
+    into 'images'
+  }
+  from('src/main/war/data1/images') {
+    into 'images'
+  }
+  
+  into 'build/resources'
+} // end of complexCopy
+
+ext{
+	versionId = '1.6'
+}
+
+// need to copy License, .travis.yml, .gitignore, README.md, gradle.properties, settings.gradle files to target project
+// src/main/resources/log4j.properties
+// try a Filter test where each line of selected file(s) have their ${} syntax replaced by map value
+// if/when key matches like ${databaseHostname}
+task filterTest(type: Copy) {
+  from 'src/main/war/WEB-INF'
+  include 'logging.properties'
+  rename { it - ~/\.properties$/ + '.config'}
+  into 'build/resources/config'
+  expand([
+    owner: 'jim northrop',
+    classname: 'Bosco',
+    version: versionId,
+    year: '2017'
+    buildNumber: (int)(Math.random() * 1000),
+    date: new Date()
+  ])
+}

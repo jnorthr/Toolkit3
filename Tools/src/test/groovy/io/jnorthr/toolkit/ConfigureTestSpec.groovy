@@ -38,7 +38,14 @@ class ConfigureTestSpec extends Specification
   } // run before the first feature method
   
   
-  def cleanupSpec() {}   // run after the last feature method}
+  def cleanupSpec() 
+  {
+	  	new File(homePath+".configureTestSpec5.config").delete()
+	  	new File(homePath+".configure.config").delete()
+	  	new File(homePath+".configureTestSpec2.config").delete()
+	  	new File(homePath+".configureTestSpec3.config").delete()
+	  	new File(homePath+".configureTestSpec4.config").delete()
+  }   // run after the last feature method}
 
 
 /*
@@ -64,15 +71,16 @@ Conceptually, a feature method consists of four phases:
  
     when:
 		ck = new Configure();  
+
     then:
 		// Asserts are implicit and not need to be stated.
     	ck.config.getClass() == groovy.util.ConfigSlurper;
-
+		ck.dataObject.getClass() == groovy.util.ConfigObject
     	true == new File(homePath+".configure.config").exists()
-    	
+    	ck.pf.getClass() == io.jnorthr.toolkit.PathFinder;
+    	    	
     	// Change "==" to "!=" and see what's happening!
-    	//ck.configPath == homePath
-    	//ck.configFileName == ".configure.config"
+    	// configFullName=[/Users/jimnorthrop/.configure.config]
     	ck.configFullName == homePath+".configure.config";
   } // end of test
 
@@ -173,6 +181,32 @@ Conceptually, a feature method consists of four phases:
 		true == ck.save();
 		ck.payload == "setup.id='jnorthr'\n";
 		new File(ck.configFullName).text == "setup.id='jnorthr'\n";
+  } // end of test
+
+  // Test Six
+  def "6th Test: Configure prettyPrint"() {
+    given:
+		println "\n6th Test: Configure prettyPrint"
+	  	new File(homePath+".configure6.config").delete()
+ 		String data = """setup {
+   output {
+   path=''
+            file=''
+    }
+    input {
+            path=''
+            file=''
+    }
+}""".toString();
+    
+    when:
+		Configure ck = new Configure();  
+		println "------------------------\nprettyPrint:"
+		println "|"+ck.prettyPrint()
+		println "------------------------"
+    then:
+		// Asserts are implicit and not need to be stated.
+    	ck.prettyPrint() == data;
   } // end of test
 
 */

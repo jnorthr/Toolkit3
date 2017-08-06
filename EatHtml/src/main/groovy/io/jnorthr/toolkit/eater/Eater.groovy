@@ -1,10 +1,10 @@
-package io.jnorthr.toolkit;
+package io.jnorthr.toolkit.eater;
 
 // stuff for regular expression filtering
 import java.util.regex.* 
 
 
-// groovy code to choose one folder to walk thru the files found within it
+// groovy code to choose one folder to eat thru the files found within it
 // **************************************************************
 import java.io.File;
 import java.io.IOException;
@@ -14,23 +14,25 @@ import groovy.io.FileType;
 import org.slf4j.*
 import groovy.util.logging.Slf4j
 
+import io.jnorthr.toolkit.Response;
+
 /**
-* The Walker program implements a support application that allows user to pick a single folder directory and then
+* The Eater program implements a support application that allows user to pick a single folder directory and then
 * step thru that folder loking at each artifact. 
 * Options allow drill-down into sub-folders or not; can provide a RegEx expression to choose target files;
 * can provide optional Closure to use against each chosen file.
 *
 * Initially starts to choose artifacts from program working directory or prior folder choice and saves user
-* choice of path in a local text file. Done by asking WalkerHelper for folder name
+* choice of path in a local text file. Done by asking EaterHelper for folder name
 *
 * Use annotation to inject log field into the class.
 *
 * @author  jnorthr
 * @version 1.0
-* @since   2017-04-22
+* @since   2017-05-22
 */
 @Slf4j
-public class Walker 
+public class Eater 
 {       
     /**
      * List to hold user selected files from the chooser dialog.
@@ -73,29 +75,29 @@ public class Walker
     Response re;
            
     // include files using this RegEx pattern    
-	Pattern pattern = ~/^.*\.groovy$/
+    Pattern pattern = ~/^.*\.html$/
 
     /**
-     * flag that is true when file walking should be influenced by select/omit options.
+     * flag that is true when file eating should be influenced by select/omit options.
      */
-	boolean includeFlag = false;
-	
-	
+    boolean includeFlag = true;
+    
+    
    // =========================================================================
    /** 
     * Class constructor.
     *
     * defaults to let user pick either a file or a folder
     */
-    public Walker()
+    public Eater()
     {
-    	say "\nWalker constructor()"
-    	//String home  = System.getProperty("user.home") + File.separator;
-        WalkerHelper wh = new WalkerHelper();  //"${home}Dropbox/Share");        
+        say "\nEater constructor()"
+        //String home  = System.getProperty("user.home") + File.separator;
+        EaterHelper wh = new EaterHelper();  //"${home}Dropbox/Share");        
         re = wh.resolve();
         fn = re.path;
         
-        // report on Response vales after GUI
+        // report on Response values after GUI
         say re.toString();
     } // end of constructor
 
@@ -106,10 +108,10 @@ public class Walker
     *
     * user provides a string of either a file or a folder
     */
-    public Walker(String pathname)
+    public Eater(String pathname)
     {
-    	say "\nWalker constructor()"
-        WalkerHelper wh = new WalkerHelper(pathname);        
+        say "\nEater constructor()"
+        EaterHelper wh = new EaterHelper(pathname);        
         re = wh.resolve();
         fn = re.path;        
         
@@ -123,13 +125,13 @@ public class Walker
    /** 
     * Closure.
     *
-    * defaults to walking the folder looking for files that match a RegEx value
+    * defaults to eating the folder looking for files that match a RegEx value
     */
     Closure findTxtFileClos = {
     
         it.eachDir(findTxtFileClos);
         
-        it.eachFile() {file ->            //Match(~/.*.adoc/) {file ->
+        it.eachFile() {file ->            //Match(~/.*.html/) {file ->
                 yn = (file.name.startsWith('.')) ? true :  false;
                 if (!yn && !file.absolutePath.contains('/.git'))
                 {
@@ -138,7 +140,7 @@ public class Walker
                     int i = file.name.lastIndexOf('.');                                                                
                     if (i>-1) 
                     {
-                    	// take trailing filename suffix
+                        // take trailing filename suffix
                         ss = file.name.substring(i+1).toLowerCase()
                         //println "... i=$i "+ss+" ="+file.name;
                         if(map.containsKey(ss)) {
@@ -162,34 +164,42 @@ public class Walker
     {
         say "\n------------------------\n... parse(${fn}) includeFlag=${includeFlag} ----->"
 
-        //new File('/Users/jimnorthrop/Dropbox/Projects/FileWalker/src/main/groovy/net/jnorthr/support').eachFileMatch(~/^.*\.groovy$/) { files << it.name };
+        //new File('/Users/jimnorthrop/Dropbox/Projects/FileEater/src/main/groovy/net/jnorthr/support').eachFileMatch(~/^.*\.html$/) { files << it.name };
 
-		if (includeFlag)
-		{
+    if (includeFlag)
+    {
+    	say "... includeFlag" 
            new File(fn).eachFileRecurse(FileType.FILES) { dir ->
-           		say "... eachFileRecurse(FILES) dir="+dir.toString();
-           		
-                dir.eachFileMatch(pattern) 
-                {myfile ->
-                	say  "... $myfile matched pattern "+pattern;
-                	files << myfile;
-            	} // eachFileMatch
+             say "... eachFileRecurse(FILES) dir="+dir.toString();
+                   
+                dir.eachFileMatch(pattern){myfile ->
+                    say  "... $myfile matched pattern "+pattern;
+                    files << myfile;
+                } // eachFileMatch
            } // end of eachDir
-		} // end of if
-		
-		else
-		{
-           new File(fn).eachDirRecurse(FileType.FILES) { dir ->
-           		say "... 182 dir="+dir.toString();
-                dir.eachFile 
-                {myfile ->
-                	say  "... $myfile matched pattern "+pattern;
-                	files << myfile;
-            	} // eachFileMatch
+    } // end of if
+        
+    else
+    {
+    	say "... includeFlag is false; fn object is "+fn.getClass(); 
+    	
+           new File(fn).eachFileRecurse() { dir ->    // (FileType.FILES)
+             say "... 185 dir="+dir.toString();
+                dir.eachFile{myfile ->
+                    if (myfile.isFile() && myfile.name.endsWith('.html'))
+                    {
+                    say  "... $myfile has a name of ${myfile.name}";  //  matched pattern "+pattern;
+	                    println "File? ${myfile.isFile()}" 
+					    println "Directory? ${myfile.isDirectory()}" 
+
+                    	files << myfile;
+					} // end of if
+					
+                } // eachFileMatch
            } // end of eachDir
-		} // end of else
-		
-		
+    } // end of else
+        
+        
         count = 0
         files.each
         {
@@ -207,7 +217,7 @@ public class Walker
     */
     public void run()
     {
-    	say "... run()"
+        say "... run()"
         findTxtFileClos(new File(fn))
         say "\n===================================\nFound $count files\nMap contains:"
         //map.each{ k, v -> say "... ${k}:${v}" }
@@ -221,6 +231,7 @@ public class Walker
     public void say(String msg)
     {
         log.info msg;
+    	//println msg;
     } // end of say
     
     
@@ -238,20 +249,20 @@ public class Walker
     */
     public include(String pat)
     {
-    	say "... pattern:"+pat
+        say "... pattern:"+pat
         this.pattern = Pattern.compile(pat, Pattern.CASE_INSENSITIVE);
         includeFlag = ( pat!=null && pat!='' );
-        say "... Walker.include(${pat}) gave includeFlag="+includeFlag; 
+        say "... Eater.include(${pat}) gave includeFlag="+includeFlag; 
     } // end of include
     
     
    /** 
     * Produce messages using println method
     */
- 	@Override
+     @Override
     public String toString()
     {
-    	return """files.size=${files.size()}
+        return """files.size=${files.size()}
 fn=${fn}
 count=${count}
 result=${result}
@@ -272,26 +283,29 @@ includeFlag=${includeFlag}""".toString();
      */
     public static void main(String[] args)
     {
-        Walker walk;
+        Eater eat;
         
         /*
          * need to test get image only files like .jpg using Filter class
          */
         if (args.size() > 0) 
         { 
-            println "... loading Walker from  args[0]="+args[0]+"\n"
-            walk = new Walker(args[0]);
-            if (args.size() > 1) { walk.include( args[1] ); }
-            println walk;
+            println "... loading Eater from  args[0]="+args[0]+"\n"
+            eat = new Eater(args[0]);
+            if (args.size() > 1) { eat.include( args[1] ); }
+            println eat;
         }
         else
         {  
-            walk = new Walker();
-            println walk;
+            eat = new Eater();
+            println eat;
         } // end of 
+        
         println "\n---------------\n"
-        walk.parse();
-        walk.run();
+        eat.parse();
+System.exit(0);
+
+        eat.run();
         println "\n---------------\n"
         System.exit(0);
     } // end of main    
